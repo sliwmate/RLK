@@ -108,6 +108,13 @@ int CGameEngine::run()
     objects.push_back(new CGameObject(100.0f, 100.0f, "resources\\img\\car.png"));
     objects[objects.size() - 1]->gravity = true;
     objects[objects.size() - 1]->mass = 100.0f;
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 50));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(90, 5));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(160, 0));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(200, 30));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(280, 35));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(300, 80));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 80));
     //al_start_timer(timer);
     long frameCnt = 0;
     int frameTimer = 0;

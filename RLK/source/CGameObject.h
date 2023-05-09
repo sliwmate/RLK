@@ -4,6 +4,22 @@
 #include <allegro5/allegro_image.h>
 #include <vector>
 #include "CPhysics.h"
+
+namespace Collider
+{
+	class CCollider
+	{
+	public:
+		CPhysics::CVector2<float> position;
+		std::vector<CPhysics::CVector2<float>> points;
+		CCollider();
+		~CCollider();
+		void render(ALLEGRO_BITMAP* canvas);
+		void update(CPhysics::CVector2<float> pos, float angle);
+
+	};
+}
+
 class CGameObject
 {
 public:
@@ -14,6 +30,7 @@ public:
 	unsigned int mass;
 	bool gravity;
 	long id;
+	Collider::CCollider* collider;
 	CGameObject();
 	CGameObject(float x, float y);
 	CGameObject(float x, float y, const char* spritePath);
@@ -26,14 +43,5 @@ private:
 	ALLEGRO_BITMAP* sprite;
 };
 
-namespace Collider
-{
-	class CCollider
-	{
-	public:
-		CGameObject* object;
-		CPhysics::CVector2<float> position;
-		CCollider();
-	};
-};
+
 
