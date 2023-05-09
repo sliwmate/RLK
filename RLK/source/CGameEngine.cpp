@@ -147,7 +147,7 @@ int CGameEngine::run()
                     if (ev.keyboard.keycode == 59)
                         break;
                     if (ev.keyboard.keycode == 75)
-                        objects[0]->velocity.y = -200;
+                        objects[0]->velocity.y = -300;
                 }
             }
             for (int i = 0; i < objects.size(); i++)
