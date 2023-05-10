@@ -141,12 +141,14 @@
     <Font Include="fonts\Roboto-Regular.ttf" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="CCar.cpp" />
     <ClCompile Include="source\CGameEngine.cpp" />
     <ClCompile Include="source\CGameObject.cpp" />
     <ClCompile Include="source\CPhysics.cpp" />
     <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="CCar.h" />
     <ClInclude Include="source\CGameEngine.h" />
     <ClInclude Include="source\CGameObject.h" />
     <ClInclude Include="source\CPhysics.h" />

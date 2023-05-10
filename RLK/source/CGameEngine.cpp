@@ -115,6 +115,15 @@ int CGameEngine::run()
     objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(280, 35));
     objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(300, 80));
     objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 80));
+    
+    objects.push_back(new CGameObject(400.0f, 100.0f));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(40, 40));
+    objects[objects.size() - 1]->gravity = true;
+    objects[objects.size() - 1]->mass = 50;
+
+    objects.push_back(new CGameObject(400.0f, 300.0f));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 0));
+    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(100, 0));
     //al_start_timer(timer);
     long frameCnt = 0;
     int frameTimer = 0;
@@ -155,6 +164,10 @@ int CGameEngine::run()
                         break;
                     if (ev.keyboard.keycode == 75)
                         objects[0]->velocity.y = -300;
+                    if (ev.keyboard.keycode == 83)
+                        objects[objects.size() - 2]->angle += 0.1f;
+                    if (ev.keyboard.keycode == 82)
+                        objects[objects.size() - 2]->angle -= 0.1f;
                 }
             }
             for (int i = 0; i < objects.size(); i++)

@@ -10,7 +10,10 @@ namespace CPhysics
 		T y;
 		CVector2();
 		CVector2(T x, T y);
-		inline float abs() { std::sqrtf(x ^ 2 + y ^ 2); };
+		inline float abs() { return std::sqrtf((float)(x * x + y * y)); };
+		void rotate(float a);
+		float getAngle();
+		void setAngle(float a);
 	};
 	template<typename T>
 	CPhysics::CVector2<T>::CVector2()
@@ -24,6 +27,53 @@ namespace CPhysics
 	{
 		this->x = x;
 		this->y = y;
+	}
+
+	template<typename T>
+	CPhysics::CVector2<T>& operator+=(CPhysics::CVector2<T> & a, CPhysics::CVector2<T>& b)
+	{
+		a.x += b.x;
+		a.y += b.y;
+		return a;
+	}
+	template<typename T>
+	CPhysics::CVector2<T>& operator-(CPhysics::CVector2<T>& a)
+	{
+		a.x = -a.x;
+		a.y = -a.y;
+		return a;
+	}
+
+	template<typename T>
+	void CPhysics::CVector2<T>::rotate(float a)
+	{
+		this->x = x;
+		this->y = y;
+	}
+
+	template<typename T>
+	float CPhysics::CVector2<T>::getAngle()
+	{
+		float d = abs();
+		double aCos = acos((double)(x / d));
+		double aSin = asin((double)(y / d));
+		if (x < 0 && y > 0)
+			return -(1.57f + asinf(y / d));
+		else if (x < 0 && y <= 0)
+			return -(1.57 + asinf(y / d));
+		else if (x > 0 && y < 0)
+			return 1.57 + asinf(y / d);
+		else if (x >= 0 && y >= 0)
+			return 1.57 + acosf(x / d);
+		return 0;
+	}
+
+	template<typename T>
+	void CPhysics::CVector2<T>::setAngle(float a)
+	{
+		float d = abs();
+		x = d * cosf(a - 1.57);
+		y = d * sinf(a - 1.57);
 	}
 
 	class CCollider

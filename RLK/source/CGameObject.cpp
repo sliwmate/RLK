@@ -1,4 +1,5 @@
 #include "CGameObject.h"
+#include <iostream>
 unsigned int CGameObject::idGlobal = 1;
 CGameObject::CGameObject()
 {
@@ -26,6 +27,7 @@ void CGameObject::init()
 	collider = NULL;
 	mass = 0;
 	gravity = false;
+	angle = 0;
 }
 CGameObject::~CGameObject()
 {
@@ -52,7 +54,7 @@ void CGameObject::update(float dt)
 	{
 		position.x = tempX;
 		position.y = tempY;
-		collider->update(position, 0);
+		collider->update(position, angle);
 	}
 	else force.y = 0;
 }
@@ -69,11 +71,11 @@ void CGameObject::render(ALLEGRO_BITMAP* canvas)
 				0, 0,		// center
 				(int)this->position.x, (int)this->position.y,		// position
 				0.5f, 0.5f,	// scale
-				0.0f,		// angle
+				angle,		// angle
 				0			// flags
 			);
-			collider->render(canvas);
 		}
+		collider->render(canvas);
 		//al_draw_rectangle(x, y, 50, 50, al_map_rgb(100, 250, 250), 3);
 	}
 }
@@ -90,17 +92,35 @@ Collider::CCollider::~CCollider()
 
 void Collider::CCollider::render(ALLEGRO_BITMAP* canvas)
 {
-	for (int i = 0; i < points.size() - 1; i++)
+	if (points.size() > 2)
 	{
+		for (int i = 0; i < points.size() - 1; i++)
+		{
+			al_draw_line(
+				position.x + points[i].x, position.y + points[i].y,
+				position.x + points[i + 1].x, position.y + points[i + 1].y,
+				al_map_rgba_f(0, 1, 1, 1), 1);
+		}
 		al_draw_line(
-			position.x + points[i].x, position.y + points[i].y,
-			position.x + points[i + 1].x, position.y + points[i + 1].y,
+			position.x + points[0].x, position.y + points[0].y,
+			position.x + points[points.size() - 1].x, position.y + points[points.size() - 1].y,
 			al_map_rgba_f(0, 1, 1, 1), 1);
 	}
-	al_draw_line(
-		position.x + points[0].x, position.y + points[0].y,
-		position.x + points[points.size() -1].x, position.y + points[points.size() - 1].y,
-		al_map_rgba_f(0, 1, 1, 1), 1);
+	else if (points.size() == 1)
+	{
+		al_draw_ellipse(position.x, position.y, points[0].x * 2, points[0].y * 2, al_map_rgba_f(0, 1, 1, 1), 1);
+	}
+	else if (points.size() == 2)
+	{
+		points[1].setAngle(-1*1.57f);
+		std::cout << points[1].getAngle() << std::endl;
+		al_draw_line(
+			position.x + points[0].x, position.y + points[0].y,
+			position.x + points[1].x, position.y + points[1].y,
+			al_map_rgba_f(0, 1, 1, 1), 1);
+		al_draw_ellipse(position.x + points[0].x, position.y + points[0].y,
+			5, 5, al_map_rgba_f(0, 1, 1, 1), 1);
+	}
 }
 
 void Collider::CCollider::update(CPhysics::CVector2<float> pos, float angle)

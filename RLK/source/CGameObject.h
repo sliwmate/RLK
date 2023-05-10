@@ -16,7 +16,6 @@ namespace Collider
 		~CCollider();
 		void render(ALLEGRO_BITMAP* canvas);
 		void update(CPhysics::CVector2<float> pos, float angle);
-
 	};
 }
 
@@ -27,6 +26,7 @@ public:
 	CPhysics::CVector2<float> position;
 	CPhysics::CVector2<float> velocity;
 	CPhysics::CVector2<float> force;
+	float angle;
 	unsigned int mass;
 	bool gravity;
 	long id;
