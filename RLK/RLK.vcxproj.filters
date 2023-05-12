@@ -38,13 +38,19 @@
     <ClCompile Include="source\CGameObject.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\CPhysics.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="CCar.cpp">
+    <ClCompile Include="source\CCar.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CCollider.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CRigidbody.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\CCamera.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -55,10 +61,19 @@
     <ClInclude Include="source\CGameObject.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\CPhysics.h">
+    <ClInclude Include="source\CCommon.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="CCar.h">
+    <ClInclude Include="source\CCar.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CCollider.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CRigidbody.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\CCamera.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

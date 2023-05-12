@@ -141,17 +141,22 @@
     <Font Include="fonts\Roboto-Regular.ttf" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="CCar.cpp" />
+    <ClCompile Include="source\CCamera.cpp" />
+    <ClCompile Include="source\CCar.cpp" />
+    <ClCompile Include="source\CCollider.cpp" />
     <ClCompile Include="source\CGameEngine.cpp" />
     <ClCompile Include="source\CGameObject.cpp" />
-    <ClCompile Include="source\CPhysics.cpp" />
+    <ClCompile Include="source\CRigidbody.cpp" />
     <ClCompile Include="source\main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CCar.h" />
+    <ClInclude Include="source\CCamera.h" />
+    <ClInclude Include="source\CCar.h" />
+    <ClInclude Include="source\CCollider.h" />
     <ClInclude Include="source\CGameEngine.h" />
     <ClInclude Include="source\CGameObject.h" />
-    <ClInclude Include="source\CPhysics.h" />
+    <ClInclude Include="source\CCommon.h" />
+    <ClInclude Include="source\CRigidbody.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
