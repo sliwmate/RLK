@@ -102,7 +102,8 @@ int CGameEngine::init()
 int CGameEngine::run()
 {    
     addGameObject(500, 200, CGameObject::Type::CAR);
-    addGameObject(400, -100, CGameObject::Type::BALL);
+    addGameObject(400, 200, CGameObject::Type::BALL);
+    addGameObject(1000, 1300, CGameObject::Type::BALL);
     //al_start_timer(timer);
     long frameCnt = 0;
     int frameTimer = 0;
@@ -149,6 +150,7 @@ int CGameEngine::run()
                         objects[0]->angle -= 0.1f;
                 }
             }
+            checkCollisions();
             for (int i = 0; i < objects.size(); i++)
                 objects[i]->update((double)(deltaU / 1000.0));
             camera->update((double)(deltaU / 1000.0));
@@ -187,6 +189,7 @@ int CGameEngine::run()
     for (int i = 0; i < objects.size(); i++)
         delete objects[i];
     objects.clear();
+    rigidbodies.clear();
     delete camera;
 	return 0;
 }
@@ -215,7 +218,9 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->dumping = 1;
         tempRigidbody->offset.x = 300;
         tempRigidbody->offset.y = 300;
+        tempRigidbody->collider->setType(CCollider::Type::POLY);
         objects.push_back(tempRigidbody);
+        rigidbodies.push_back(tempRigidbody);
         /*objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 50));
         objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(90, 5));
         objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(160, 0));
@@ -234,8 +239,12 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->dumping = 1;
         tempRigidbody->offset.x = 100;
         tempRigidbody->offset.y = 100;
-        tempRigidbody->collider->points.push_back(CVector2<float>(50, 50));
+        if (x > 900) tempRigidbody->velocity = CVector2<float>(-300, -700);
+        tempRigidbody->collider->setType(CCollider::Type::ELLIPSE);
+        tempRigidbody->collider->addPoint(100, 100);
         objects.push_back(tempRigidbody);
+        rigidbodies.push_back(tempRigidbody);
+        //dynamic_cast<CRigidbody*>(objects[0])->update(1);
         /*
         objects.push_back(new CGameObject(400.0f, 100.0f));
         objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(40, 40));
@@ -247,5 +256,19 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(100, 0));
         */
         break;
+    }
+}
+
+void CGameEngine::checkCollisions()
+{
+    for (int i = 0; i < rigidbodies.size() - 1; i++)
+    {
+        if (rigidbodies[i]->collides)
+        {
+            for (int j = i + 1; j < rigidbodies.size(); j++)
+            {
+                rigidbodies[i]->checkCollision(rigidbodies[j]);
+            }
+        }
     }
 }

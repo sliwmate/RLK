@@ -27,6 +27,7 @@ private:
 	long prevTime;
 	bool devWindowOn;
 	std::vector<CGameObject*> objects;
+	std::vector<CRigidbody*> rigidbodies;
 	CCamera* camera;
 	ALLEGRO_DISPLAY* display;
 	ALLEGRO_BITMAP* devWindow;
@@ -35,5 +36,6 @@ private:
 	ALLEGRO_FONT* font;
 	void render();
 	void addGameObject(float x, float y, unsigned char type);
+	void checkCollisions();
 };
 

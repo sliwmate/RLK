@@ -9,6 +9,7 @@ CRigidbody::CRigidbody() : CGameObject::CGameObject()
 	spring = 0;
 	dumping = 0;
 	collides = false;
+	contactPoint = CVector2<float>(0, 0);
 }
 
 CRigidbody::CRigidbody(float x, float y, const char* spritePath) :
@@ -43,17 +44,37 @@ void CRigidbody::update(double dt)
 	}
 	float tempX = position.x + velocity.x * dt;
 	float tempY = position.y + velocity.y * dt;
-	if (tempX < 900 && tempX > 50 && tempY < 1500)
-	{
-		position.x = tempX;
-		position.y = tempY;
-		collider->update(position, angle);
-	}
-	else force.y = 0;
+	position.x = tempX;
+	position.y = tempY;
+	collider->update(position, angle);
 }
 
 void CRigidbody::render(CVector2<float> offset)
 {
 	CGameObject::render(offset);
 	collider->render(offset);
+	if (contactPoint.abs() > 0)
+	{
+		al_draw_filled_circle(contactPoint.x - offset.x, contactPoint.y - offset.y, 50, al_map_rgba_f(1, 0, 0, 1));
+	}
+}
+
+void CRigidbody::checkCollision(CRigidbody* obj)
+{
+	contactPoint = CCollider::getContactPoint(*collider, *obj->collider);
+	if (contactPoint.abs() > 0)
+	{
+		CVector2<float> velDif = this->velocity - obj->velocity;
+		CVector2<float> posDif = this->position - obj->position;
+		double a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
+		a = a * ((2 * obj->mass) / (this->mass + obj->mass));
+		CVector2<float> temp = this->velocity - (a * posDif);
+		this->velocity.x = temp.x;
+		this->velocity.y = temp.y;
+	}
+	if (this->position.y > 1400)
+	{
+		this->velocity.y = -0.8 * this->velocity.y;
+		this->position.y = 1400;
+	}
 }
