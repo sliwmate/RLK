@@ -239,7 +239,11 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->dumping = 1;
         tempRigidbody->offset.x = 100;
         tempRigidbody->offset.y = 100;
-        if (x > 900) tempRigidbody->velocity = CVector2<float>(-300, -700);
+        if (x > 900)
+        {
+            tempRigidbody->velocity = CVector2<float>(-700, -1100);
+            tempRigidbody->mass = 10;
+        }
         tempRigidbody->collider->setType(CCollider::Type::ELLIPSE);
         tempRigidbody->collider->addPoint(100, 100);
         objects.push_back(tempRigidbody);
@@ -267,8 +271,29 @@ void CGameEngine::checkCollisions()
         {
             for (int j = i + 1; j < rigidbodies.size(); j++)
             {
-                rigidbodies[i]->checkCollision(rigidbodies[j]);
-            }
+                bool collision = rigidbodies[i]->collisionCheck(rigidbodies[j]);
+                for (int h = 0; h < rigidbodies[i]->collisionIDs.size(); h++)
+                {
+                    if(rigidbodies[j]->id == rigidbodies[i]->collisionIDs[h])
+                    {
+                        if (collision)
+                        {
+                            collision = false;
+                            break;
+                        }
+                        else
+                        {
+                            rigidbodies[i]->collisionIDs.erase(rigidbodies[i]->collisionIDs.begin() + h);
+                            h--;
+                        }
+                    }
+                }
+                if (collision)
+                {
+                    rigidbodies[i]->collisionExecute(rigidbodies[j]);
+                    rigidbodies[i]->collisionIDs.push_back(rigidbodies[j]->id);
+                }
+            }      
         }
     }
 }

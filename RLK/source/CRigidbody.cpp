@@ -55,26 +55,51 @@ void CRigidbody::render(CVector2<float> offset)
 	collider->render(offset);
 	if (contactPoint.abs() > 0)
 	{
-		al_draw_filled_circle(contactPoint.x - offset.x, contactPoint.y - offset.y, 50, al_map_rgba_f(1, 0, 0, 1));
+		//al_draw_filled_circle(contactPoint.x - offset.x, contactPoint.y - offset.y, 50, al_map_rgba_f(1, 0, 0, 1));
 	}
 }
 
-void CRigidbody::checkCollision(CRigidbody* obj)
+bool CRigidbody::collisionCheck(CRigidbody* obj)
 {
 	contactPoint = CCollider::getContactPoint(*collider, *obj->collider);
 	if (contactPoint.abs() > 0)
 	{
-		CVector2<float> velDif = this->velocity - obj->velocity;
-		CVector2<float> posDif = this->position - obj->position;
-		double a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
-		a = a * ((2 * obj->mass) / (this->mass + obj->mass));
-		CVector2<float> temp = this->velocity - (a * posDif);
-		this->velocity.x = temp.x;
-		this->velocity.y = temp.y;
+		return true;
 	}
+	return false;
+}
+
+void CRigidbody::collisionExecute(CRigidbody* obj)
+{
+	CVector2<float> velDif = this->velocity - obj->velocity;
+	CVector2<float> posDif = this->position - obj->position;
+	double a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
+	a = a * ((2 * obj->mass) / (this->mass + obj->mass));
+	CVector2<float> temp = this->velocity - (a * posDif);
+	this->velocity.x = temp.x;
+	this->velocity.y = temp.y;
+
+	velDif = obj->velocity - this->velocity;
+	posDif = obj->position - this->position;
+	a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
+	a = a * ((2 * this->mass) / (obj->mass + this->mass));
+	temp = obj->velocity - (a * posDif);
+	obj->velocity.x = temp.x;
+	obj->velocity.y = temp.y;
+
 	if (this->position.y > 1400)
 	{
 		this->velocity.y = -0.8 * this->velocity.y;
 		this->position.y = 1400;
+	}
+	if (this->position.x > 1000)
+	{
+		this->velocity.x = -this->velocity.x;
+		this->position.x = 1000;
+	}
+	if (this->position.x < 0)
+	{
+		this->velocity.x = -this->velocity.x;
+		this->position.x = 0;
 	}
 }
