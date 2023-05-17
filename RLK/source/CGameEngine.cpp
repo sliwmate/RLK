@@ -102,7 +102,7 @@ int CGameEngine::init()
 int CGameEngine::run()
 {    
     addGameObject(500, 200, CGameObject::Type::CAR);
-    addGameObject(400, 200, CGameObject::Type::BALL);
+    addGameObject(100, 200, CGameObject::Type::BALL);
     addGameObject(1000, 1300, CGameObject::Type::BALL);
     //al_start_timer(timer);
     long frameCnt = 0;
@@ -150,10 +150,12 @@ int CGameEngine::run()
                         objects[0]->angle -= 0.1f;
                 }
             }
-            checkCollisions();
+            
             for (int i = 0; i < objects.size(); i++)
                 objects[i]->update((double)(deltaU / 1000.0));
+            checkCollisions();
             camera->update((double)(deltaU / 1000.0));
+           
             updateTimer += deltaU;
             deltaU -= timeU;
             updateCnt++;
@@ -219,6 +221,10 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->offset.x = 300;
         tempRigidbody->offset.y = 300;
         tempRigidbody->collider->setType(CCollider::Type::POLY);
+        tempRigidbody->collider->addPoint(-200, -100);
+        tempRigidbody->collider->addPoint(200, -100);
+        tempRigidbody->collider->addPoint(200, 100);
+        tempRigidbody->collider->addPoint(-200, 100);
         objects.push_back(tempRigidbody);
         rigidbodies.push_back(tempRigidbody);
         /*objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 50));

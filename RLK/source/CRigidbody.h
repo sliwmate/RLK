@@ -7,7 +7,6 @@ public:
 	// Public Variables
 	CVector2<float> velocity;
 	CVector2<float> force;
-	CVector2<float> contactPoint;
 	std::vector<unsigned int> collisionIDs;
 	float mass;
 	float spring;
