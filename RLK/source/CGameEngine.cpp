@@ -8,7 +8,6 @@
 CGameEngine::CGameEngine ()
 {
 	display = NULL;
-    buffer = NULL;
     devWindow = NULL;
 	eventQueue = NULL;
 	timer = NULL;
@@ -17,10 +16,13 @@ CGameEngine::CGameEngine ()
     setUPS = 30;
     fps = 0;
     ups = 0;
-    displayWidth = 1024;
-    displayHeight = 768;
+    displaySize.x = 1024;
+    displaySize.y = 768;
+    mapSize.x = 3000;
+    mapSize.y = 2000;
     prevTime = 0;
     devWindowOn = false;
+    camera = NULL;
 }
 int CGameEngine::init()
 {
@@ -49,7 +51,7 @@ int CGameEngine::init()
             throw std::exception("Failed to init primitives\n");
         }
 
-        display = al_create_display(displayWidth, displayHeight);
+        display = al_create_display(displaySize.x, displaySize.y);
         if (!display) {
             al_destroy_timer(timer);
             al_shutdown_primitives_addon();
@@ -57,18 +59,9 @@ int CGameEngine::init()
             throw std::exception("Failed to create display!\n");
         }
 
-        buffer = al_create_bitmap(displayWidth, displayHeight);
-        if (!buffer) {
-            al_destroy_display(display);
-            al_destroy_timer(timer);
-            al_shutdown_primitives_addon();
-            al_uninstall_keyboard();
-            throw std::exception("Failed to create buffer!\n");
-        }
         devWindow = al_create_bitmap(150, 300);
         if (!devWindow) {
             al_destroy_display(display);
-            al_destroy_bitmap(buffer);
             al_destroy_timer(timer);
             al_shutdown_primitives_addon();
             al_uninstall_keyboard();
@@ -78,7 +71,6 @@ int CGameEngine::init()
         eventQueue = al_create_event_queue();
         if (!eventQueue) {
             al_destroy_display(display);
-            al_destroy_bitmap(buffer);
             al_destroy_bitmap(devWindow);
             al_destroy_timer(timer);
             al_shutdown_primitives_addon();
@@ -92,6 +84,10 @@ int CGameEngine::init()
         return 1;
     }
 
+    camera = new CCamera(displaySize.x, displaySize.y);
+    camera->pDisplay = &display;
+    camera->pObjects = &objects;
+
     al_register_event_source(eventQueue, al_get_display_event_source(display));
 
     al_register_event_source(eventQueue, al_get_keyboard_event_source());
@@ -104,17 +100,10 @@ int CGameEngine::init()
 	return 0;
 }
 int CGameEngine::run()
-{
-    objects.push_back(new CGameObject(100.0f, 100.0f, "resources\\img\\car.png"));
-    objects[objects.size() - 1]->gravity = true;
-    objects[objects.size() - 1]->mass = 100.0f;
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 50));
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(90, 5));
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(160, 0));
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(200, 30));
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(280, 35));
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(300, 80));
-    objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 80));
+{    
+    addGameObject(500, 200, CGameObject::Type::CAR);
+    addGameObject(100, 200, CGameObject::Type::BALL);
+    addGameObject(1000, 1300, CGameObject::Type::BALL);
     //al_start_timer(timer);
     long frameCnt = 0;
     int frameTimer = 0;
@@ -154,11 +143,19 @@ int CGameEngine::run()
                     if (ev.keyboard.keycode == 59)
                         break;
                     if (ev.keyboard.keycode == 75)
-                        objects[0]->velocity.y = -300;
+                        //objects[0]->velocity.y = -300;
+                    if (ev.keyboard.keycode == 83)
+                        objects[0]->angle += 0.1f;
+                    if (ev.keyboard.keycode == 82)
+                        objects[0]->angle -= 0.1f;
                 }
             }
+            
             for (int i = 0; i < objects.size(); i++)
-                objects[i]->update(deltaU / 1000.f);
+                objects[i]->update((double)(deltaU / 1000.0));
+            checkCollisions();
+            camera->update((double)(deltaU / 1000.0));
+           
             updateTimer += deltaU;
             deltaU -= timeU;
             updateCnt++;
@@ -171,10 +168,10 @@ int CGameEngine::run()
         }
         if (deltaR >= timeR)
         {
-                render();
-                frameTimer += deltaR;
-                while (deltaR >= timeR) deltaR -= timeR;
-                frameCnt++;
+            render();
+            frameTimer += deltaR;
+            while (deltaR >= timeR) deltaR -= timeR;
+            frameCnt++;
         }
         if (frameTimer >= 200)
         {
@@ -190,34 +187,119 @@ int CGameEngine::run()
     al_shutdown_primitives_addon();
     al_destroy_font(font);
     al_uninstall_keyboard();
-    al_destroy_bitmap(buffer);
     al_shutdown_ttf_addon();
     for (int i = 0; i < objects.size(); i++)
         delete objects[i];
     objects.clear();
+    rigidbodies.clear();
+    delete camera;
 	return 0;
 }
 
 void CGameEngine::render()
 {
-    al_set_target_bitmap(buffer);
-    al_clear_to_color(al_map_rgb(0, 180, 110));
-    al_draw_rectangle(10, 20, 50, 50, al_map_rgb(red, 250, 250), 3);
-    for (int i = 0; i < objects.size(); i++)
-        objects[i]->render(buffer);
-    red = (red == 0) ? 250 : 0;
+    camera->renderBG();
+    camera->renderObjects();
     if (devWindowOn)
+        camera->renderDeView();
+    camera->renderToDisplay();
+}
+
+void CGameEngine::addGameObject(float x, float y, unsigned char type)
+{
+    CRigidbody* tempRigidbody = NULL;
+    CGameObject* tempGameObject = NULL;
+    switch (type)
     {
-        al_set_target_bitmap(devWindow);
-        al_clear_to_color(al_map_rgb(0, 0, 0));
-        std::string temp_str = "FPS:" + std::to_string(fps) + " UPS:" + std::to_string(ups);
-        char const* pchar = temp_str.c_str();
-        al_draw_text(font, al_map_rgb(250, 250, 30), 150 - 2, 0, 2, pchar);
+    case CGameObject::Type::CAR:
+        tempRigidbody = new CRigidbody(x, y, "resources\\img\\car.png");
+        tempRigidbody->gravity = true;
+        tempRigidbody->mass = 100;
+        tempRigidbody->collides = true;
+        tempRigidbody->spring = 1;
+        tempRigidbody->dumping = 1;
+        tempRigidbody->offset.x = 300;
+        tempRigidbody->offset.y = 300;
+        tempRigidbody->collider->setType(CCollider::Type::POLY);
+        tempRigidbody->collider->addPoint(-200, -100);
+        tempRigidbody->collider->addPoint(200, -100);
+        tempRigidbody->collider->addPoint(200, 100);
+        tempRigidbody->collider->addPoint(-200, 100);
+        objects.push_back(tempRigidbody);
+        rigidbodies.push_back(tempRigidbody);
+        /*objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 50));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(90, 5));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(160, 0));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(200, 30));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(280, 35));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(300, 80));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 80));
+        */
+        break;
+    case CGameObject::Type::BALL:
+        tempRigidbody = new CRigidbody(x, y, "resources\\img\\ball.png");
+        tempRigidbody->gravity = true;
+        tempRigidbody->mass = 10;
+        tempRigidbody->collides = true;
+        tempRigidbody->spring = 2;
+        tempRigidbody->dumping = 1;
+        tempRigidbody->offset.x = 100;
+        tempRigidbody->offset.y = 100;
+        if (x > 900)
+        {
+            tempRigidbody->velocity = CVector2<float>(-700, -1100);
+            tempRigidbody->mass = 10;
+        }
+        tempRigidbody->collider->setType(CCollider::Type::ELLIPSE);
+        tempRigidbody->collider->addPoint(100, 100);
+        objects.push_back(tempRigidbody);
+        rigidbodies.push_back(tempRigidbody);
+        //dynamic_cast<CRigidbody*>(objects[0])->update(1);
+        /*
+        objects.push_back(new CGameObject(400.0f, 100.0f));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(40, 40));
+        objects[objects.size() - 1]->gravity = true;
+        objects[objects.size() - 1]->mass = 50;
+
+        objects.push_back(new CGameObject(400.0f, 300.0f));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 0));
+        objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(100, 0));
+        */
+        break;
     }
-    al_set_target_bitmap(al_get_backbuffer(display));
-    //al_clear_to_color(al_map_rgb(0, 0, 0));
-    al_draw_scaled_rotated_bitmap(buffer, 0, 0, 0, 0, 1.0f, 1.0f, 0.0f, 0);
-    if(devWindowOn)
-        al_draw_tinted_bitmap(devWindow, al_map_rgba_f(1, 1, 1, 0.5f), displayWidth - 150, 0, 0);
-    al_flip_display();
+}
+
+void CGameEngine::checkCollisions()
+{
+    for (int i = 0; i < rigidbodies.size() - 1; i++)
+    {
+        if (rigidbodies[i]->collides)
+        {
+            for (int j = i + 1; j < rigidbodies.size(); j++)
+            {
+                bool collision = rigidbodies[i]->collisionCheck(rigidbodies[j]);
+                for (int h = 0; h < rigidbodies[i]->collisionIDs.size(); h++)
+                {
+                    if(rigidbodies[j]->id == rigidbodies[i]->collisionIDs[h])
+                    {
+                        if (collision)
+                        {
+                            collision = false;
+                            break;
+                        }
+                        else
+                        {
+                            rigidbodies[i]->collisionIDs.erase(rigidbodies[i]->collisionIDs.begin() + h);
+                            h--;
+                        }
+                    }
+                }
+                if (collision)
+                {
+                    rigidbodies[i]->collisionExecute(rigidbodies[j]);
+                    rigidbodies[i]->collisionIDs.push_back(rigidbodies[j]->id);
+                }
+            }      
+        }
+    }
 }

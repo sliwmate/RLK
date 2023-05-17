@@ -3,44 +3,35 @@
 #include <allegro5/allegro_primitives.h>
 #include <allegro5/allegro_image.h>
 #include <vector>
-#include "CPhysics.h"
-
-namespace Collider
-{
-	class CCollider
-	{
-	public:
-		CPhysics::CVector2<float> position;
-		std::vector<CPhysics::CVector2<float>> points;
-		CCollider();
-		~CCollider();
-		void render(ALLEGRO_BITMAP* canvas);
-		void update(CPhysics::CVector2<float> pos, float angle);
-
-	};
-}
+#include "CCommon.h"
 
 class CGameObject
 {
 public:
+	typedef enum
+	{
+		CAR = 1,
+		WHEEL = 2,
+		BOOST = 3,
+		BALL = 4,
+		GOAL = 5
+	} Type;
 	static unsigned int idGlobal;
-	CPhysics::CVector2<float> position;
-	CPhysics::CVector2<float> velocity;
-	CPhysics::CVector2<float> force;
-	unsigned int mass;
-	bool gravity;
-	long id;
-	Collider::CCollider* collider;
+	unsigned int id;
+	unsigned char type;
+	CVector2<float> position;
+	CVector2<float> offset;
+	float angle;
 	CGameObject();
 	CGameObject(float x, float y);
 	CGameObject(float x, float y, const char* spritePath);
-	void init();
 	~CGameObject();
-	void render(ALLEGRO_BITMAP* canvas);
-	void update(float dt);
+	virtual void render(CVector2<float> offset);
+	virtual void update(double dt);
 
 private:
 	ALLEGRO_BITMAP* sprite;
+	void init();
 };
 
 

@@ -1,5 +1,6 @@
 #include <iostream>
 #include "CGameEngine.h"
+#include "CCommon.h"
 
 using namespace std;
 

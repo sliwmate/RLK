@@ -6,6 +6,10 @@
 #include <allegro5/allegro_primitives.h>
 #include <iostream>
 #include "CGameObject.h"
+#include "CRigidbody.h"
+#include "CCamera.h"
+#include "CCommon.h"
+#include "CCar.h"
 #include <vector>
 class CGameEngine
 {
@@ -14,24 +18,24 @@ public:
 	unsigned short setUPS;
 	unsigned int fps;
 	unsigned int ups;
-	unsigned short displayWidth;
-	unsigned short displayHeight;
-	long prevTime;
+	CVector2<int> displaySize;
+	CVector2<float> mapSize;
 	CGameEngine();
 	int init();
 	int run();
 private:
-	unsigned char red = 250;
+	long prevTime;
 	bool devWindowOn;
-	std::ofstream logFile;
+	std::vector<CGameObject*> objects;
+	std::vector<CRigidbody*> rigidbodies;
+	CCamera* camera;
 	ALLEGRO_DISPLAY* display;
-	ALLEGRO_BITMAP* buffer;
 	ALLEGRO_BITMAP* devWindow;
 	ALLEGRO_EVENT_QUEUE* eventQueue;
 	ALLEGRO_TIMER* timer;
 	ALLEGRO_FONT* font;
 	void render();
-	bool getFPS(long* cnt);
-	std::vector<CGameObject*> objects;
+	void addGameObject(float x, float y, unsigned char type);
+	void checkCollisions();
 };
 

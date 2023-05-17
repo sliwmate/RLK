@@ -1,0 +1,112 @@
+#include "CCollider.h"
+
+CCollider::CCollider()
+{
+	//object = NULL;
+	type = 0;
+}
+
+CCollider::~CCollider()
+{
+	points.clear();
+}
+
+void CCollider::render(CVector2<float> offset)
+{
+	if (points.size() > 2)
+	{
+		for (int i = 0; i < points.size() - 1; i++)
+		{
+			al_draw_line(
+				position.x + points[i].x - offset.x, position.y + points[i].y - offset.y,
+				position.x + points[i + 1].x - offset.x, position.y + points[i + 1].y - offset.y,
+				al_map_rgba_f(0, 1, 1, 1), 1);
+		}
+		al_draw_line(
+			position.x + points[0].x - offset.x, position.y + points[0].y - offset.y,
+			position.x + points[points.size() - 1].x - offset.x, position.y + points[points.size() - 1].y - offset.y,
+			al_map_rgba_f(0, 1, 1, 1), 1);
+	}
+	else if (points.size() == 1)
+	{
+		al_draw_ellipse(position.x - offset.x, position.y - offset.y, points[0].x, points[0].y, al_map_rgba_f(0, 1, 1, 1), 1);
+	}
+	else if (points.size() == 2)
+	{
+		al_draw_line(
+			position.x + points[0].x, position.y + points[0].y,
+			position.x + points[1].x, position.y + points[1].y,
+			al_map_rgba_f(0, 1, 1, 1), 1);
+		al_draw_ellipse(position.x + points[0].x, position.y + points[0].y,
+			5, 5, al_map_rgba_f(0, 1, 1, 1), 1);
+	}
+}
+
+void CCollider::update(CVector2<float> pos, float angle)
+{
+	position.x = pos.x;
+	position.y = pos.y;
+}
+
+void CCollider::addPoint(float x, float y)
+{
+	points.push_back(CVector2<float>(x, y));
+}
+
+bool CCollider::inCollision(CCollider c1, CCollider c2)
+{
+	if (c1.type == Type::ELLIPSE &&
+		c2.type == Type::ELLIPSE)
+	{
+		return circleCircle(c1.position, c1.points[0].x, c2.position, c2.points[0].x);
+	}
+	
+	if (c1.type == Type::POLY &&
+		c2.type == Type::ELLIPSE)
+	{
+		for (int i = 0; i < c1.points.size() - 1; i++)
+		{
+			bool verdict = lineCircle(
+				c1.position + c1.points[i],
+				c1.position + c1.points[i + 1],
+				c2.position,
+				c2.points[0].x);
+			if (verdict) return true;
+		}
+	}
+	return false;
+}
+
+bool CCollider::pointCircle(CVector2<float> p, CVector2<float> c, float r)
+{
+	return (p - c).abs() <= r;
+}
+
+bool CCollider::circleCircle(CVector2<float> c1, float r1, CVector2<float> c2, float r2)
+{
+	return (c2 - c1).abs() <= r1 + r2;
+}
+
+bool CCollider::linePoint(CVector2<float> a1, CVector2<float> a2, CVector2<float> p)
+{
+	float d1 = (a1 - p).abs();
+	float d2 = (a2 - p).abs();
+	float len = (a2 - a1).abs();
+	float buffer = 0.1f;
+	return d1 + d2 >= len - buffer && d1 + d2 <= len + buffer;
+}
+
+bool CCollider::lineCircle(CVector2<float> a1, CVector2<float> a2, CVector2<float> c, float r)
+{
+	bool inside1 = pointCircle(a1, c, r);
+	bool inside2 = pointCircle(a2, c, r);
+	if (inside1 || inside2) return true;
+	CVector2<float> dist = a2 - a1;
+	float len = dist.abs();
+	float dot = (((c.x - a1.x) * (a2.x - a1.x)) + ((c.y - a1.y) * (a2.y - a1.y))) / (len * len);
+	CVector2<float> closest(a1.x + (dot * (a2.x - a1.x)), a1.y + (dot * (a2.y - a1.y)));
+	bool onSegment = linePoint(a1, a2, closest);
+	if (!onSegment) return false;
+	return pointCircle(closest, c, r);
+	return false;
+}
