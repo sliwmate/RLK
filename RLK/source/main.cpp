@@ -11,6 +11,7 @@ int main(int argc, char** argv)
     {
         gameEngine.run();
     }
+    // Test Comment from Krakowska
     system("pause");
     return 0;
 }
