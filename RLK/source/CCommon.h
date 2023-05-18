@@ -53,18 +53,18 @@ CVector2<T> operator-(CVector2<T> a, CVector2<T> b)
 }
 
 template<typename T>
-CVector2<T> operator+(CVector2<T>& a, CVector2<T>& b)
+CVector2<T> operator+(CVector2<T> a, CVector2<T> b)
 {
 	return CVector2<T>(a.x + b.x, a.y + b.y);
 }
 
 template<typename T>
-CVector2<T> operator*(CVector2<T>& a, float b)
+CVector2<T> operator*(CVector2<T> a, float b)
 {
 	return CVector2<T>(a.x * b, a.y * b);
 }
 template<typename T>
-CVector2<T> operator*(float b, CVector2<T>& a)
+CVector2<T> operator*(float b, CVector2<T> a)
 {
 	return CVector2<T>(a.x * b, a.y * b);
 }

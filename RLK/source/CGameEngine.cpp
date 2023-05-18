@@ -101,8 +101,8 @@ int CGameEngine::init()
 }
 int CGameEngine::run()
 {    
-    addGameObject(500, 200, CGameObject::Type::CAR);
-    addGameObject(100, 200, CGameObject::Type::BALL);
+    //addGameObject(500, 200, CGameObject::Type::CAR);
+    addGameObject(400, 200, CGameObject::Type::BALL);
     addGameObject(1000, 1300, CGameObject::Type::BALL);
     //al_start_timer(timer);
     long frameCnt = 0;
@@ -245,9 +245,10 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->dumping = 1;
         tempRigidbody->offset.x = 100;
         tempRigidbody->offset.y = 100;
+        tempRigidbody->friction = 0.5f;
         if (x > 900)
         {
-            tempRigidbody->velocity = CVector2<float>(-700, -1100);
+            tempRigidbody->velocity = CVector2<float>(-400, -700);
             tempRigidbody->mass = 10;
         }
         tempRigidbody->collider->setType(CCollider::Type::ELLIPSE);
@@ -277,7 +278,8 @@ void CGameEngine::checkCollisions()
         {
             for (int j = i + 1; j < rigidbodies.size(); j++)
             {
-                bool collision = rigidbodies[i]->collisionCheck(rigidbodies[j]);
+                CVector2<float> contact(0, 0);
+                bool collision = rigidbodies[i]->collisionCheck(rigidbodies[j], &contact);
                 for (int h = 0; h < rigidbodies[i]->collisionIDs.size(); h++)
                 {
                     if(rigidbodies[j]->id == rigidbodies[i]->collisionIDs[h])
@@ -296,7 +298,7 @@ void CGameEngine::checkCollisions()
                 }
                 if (collision)
                 {
-                    rigidbodies[i]->collisionExecute(rigidbodies[j]);
+                    rigidbodies[i]->collisionExecute(rigidbodies[j], contact);
                     rigidbodies[i]->collisionIDs.push_back(rigidbodies[j]->id);
                 }
             }      

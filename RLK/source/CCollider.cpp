@@ -58,7 +58,7 @@ bool CCollider::inCollision(CCollider c1, CCollider c2)
 	if (c1.type == Type::ELLIPSE &&
 		c2.type == Type::ELLIPSE)
 	{
-		return circleCircle(c1.position, c1.points[0].x, c2.position, c2.points[0].x);
+		//return circleCircle(c1.position, c1.points[0].x, c2.position, c2.points[0].x);
 	}
 	
 	if (c1.type == Type::POLY &&
@@ -82,9 +82,15 @@ bool CCollider::pointCircle(CVector2<float> p, CVector2<float> c, float r)
 	return (p - c).abs() <= r;
 }
 
-bool CCollider::circleCircle(CVector2<float> c1, float r1, CVector2<float> c2, float r2)
+bool CCollider::circleCircle(CVector2<float> c1, float r1, CVector2<float> c2, float r2, CVector2<float>* out)
 {
-	return (c2 - c1).abs() <= r1 + r2;
+	CVector2<float> dist = c2 - c1;
+	if (dist.abs() <= r1 + r2)
+	{
+		*out = c1 + (r1 / (r1 + r2)) * (c2 - c1);
+		return true;
+	}
+	return false;
 }
 
 bool CCollider::linePoint(CVector2<float> a1, CVector2<float> a2, CVector2<float> p)
