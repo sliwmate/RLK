@@ -35,7 +35,9 @@ private:
 	ALLEGRO_TIMER* timer;
 	ALLEGRO_FONT* font;
 	void render();
-	void addGameObject(float x, float y, unsigned char type);
+	CGameObject* addGameObject(float x, float y, unsigned char type);
+	CRigidbody* addRigidbody(CVector2<float> pos, CVector2<float> vel, unsigned char type);
+	CCar* addCar(CVector2<float> pos, unsigned char type);
 	void checkCollisions();
 };
 
