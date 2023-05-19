@@ -101,8 +101,8 @@ int CGameEngine::init()
 }
 int CGameEngine::run()
 {    
-    //addGameObject(500, 200, CGameObject::Type::CAR);
-    addGameObject(400, 200, CGameObject::Type::BALL);
+    addGameObject(500, 200, CGameObject::Type::CAR);
+    addGameObject(100, 200, CGameObject::Type::BALL);
     addGameObject(1000, 1300, CGameObject::Type::BALL);
     //al_start_timer(timer);
     long frameCnt = 0;
@@ -209,9 +209,29 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
 {
     CRigidbody* tempRigidbody = NULL;
     CGameObject* tempGameObject = NULL;
+    CCar* tempCar = NULL;
     switch (type)
     {
     case CGameObject::Type::CAR:
+        tempCar = new CCar(x, y, "resources\\img\\car.png");
+        //tempCar->wheelF = new CRigidbody(x - 200, y + 100, "resources\\img\\wheel.png");
+        //tempCar->wheelR = new CRigidbody(x + 200, y + 100, "resources\\img\\wheel.png");
+        tempCar->gravity = true;
+        tempCar->mass = 100;
+        tempCar->collides = true;
+        tempCar->spring = 1;
+        tempCar->dumping = 1;
+        tempCar->offset.x = 300;
+        tempCar->offset.y = 300;
+        tempCar->friction = 0.5f;
+        tempCar->collider->setType(CCollider::Type::POLY);
+        tempCar->collider->addPoint(-200, -100);
+        tempCar->collider->addPoint(200, -100);
+        tempCar->collider->addPoint(200, 100);
+        tempCar->collider->addPoint(-200, 100);
+        objects.push_back(tempCar);
+        rigidbodies.push_back(tempCar);
+        /*
         tempRigidbody = new CRigidbody(x, y, "resources\\img\\car.png");
         tempRigidbody->gravity = true;
         tempRigidbody->mass = 100;
@@ -220,6 +240,7 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->dumping = 1;
         tempRigidbody->offset.x = 300;
         tempRigidbody->offset.y = 300;
+        tempRigidbody->friction = 0.5f;
         tempRigidbody->collider->setType(CCollider::Type::POLY);
         tempRigidbody->collider->addPoint(-200, -100);
         tempRigidbody->collider->addPoint(200, -100);
@@ -227,6 +248,7 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->collider->addPoint(-200, 100);
         objects.push_back(tempRigidbody);
         rigidbodies.push_back(tempRigidbody);
+        */
         /*objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(0, 50));
         objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(90, 5));
         objects[objects.size() - 1]->collider->points.push_back(CPhysics::CVector2<float>(160, 0));
@@ -248,7 +270,7 @@ void CGameEngine::addGameObject(float x, float y, unsigned char type)
         tempRigidbody->friction = 0.5f;
         if (x > 900)
         {
-            tempRigidbody->velocity = CVector2<float>(-400, -700);
+            tempRigidbody->velocity = CVector2<float>(-500, -1300);
             tempRigidbody->mass = 10;
         }
         tempRigidbody->collider->setType(CCollider::Type::ELLIPSE);

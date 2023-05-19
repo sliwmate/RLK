@@ -12,6 +12,7 @@ CRigidbody::CRigidbody() : CGameObject::CGameObject()
 	dumping = 0;
 	collides = false;
 	friction = 0;
+	dynamic = true;
 }
 
 CRigidbody::CRigidbody(float x, float y, const char* spritePath) :
@@ -27,6 +28,7 @@ CRigidbody::CRigidbody(float x, float y, const char* spritePath) :
 	dumping = 0;
 	collides = false;
 	friction = 0;
+	dynamic = true;
 }
 
 CRigidbody::~CRigidbody()
@@ -74,76 +76,75 @@ bool CRigidbody::collisionCheck(CRigidbody* obj, CVector2<float>* out)
 			obj->collider->points[0].x,
 			out);
 	}
+	if (this->collider->type == CCollider::Type::POLY &&
+		obj->collider->type == CCollider::Type::ELLIPSE)
+	{
+		for (int i = 0; i < this->collider->points.size() - 1; i++)
+		{
+			if (CCollider::lineCircle(
+				this->collider->position + this->collider->points[i],
+				this->collider->position + this->collider->points[i + 1],
+				obj->collider->position, obj->collider->points[0].x, out))
+			{
+				return true;
+			}
+		}
+	}
 	return false;
 }
 
 void CRigidbody::collisionExecute(CRigidbody* obj, CVector2<float> contact)
 {
-	if (this->collider->type == CCollider::Type::ELLIPSE &&
-		obj->collider->type == CCollider::Type::ELLIPSE)
+	float friction = 0;
+	if (this->friction > 0 && obj->friction > 0) friction = this->friction + obj->friction;
+	CVector2<float> rObj2 = obj->position - contact;
+	CVector2<float> rObj1 = this->position - contact;
+	CVector2<float> vnObj1 = CVector2<float>::dot(this->velocity, rObj2) / (rObj2.abs() * rObj2.abs()) * rObj2;
+	CVector2<float> vnObj2 = CVector2<float>::dot(obj->velocity, rObj1) / (rObj1.abs() * rObj1.abs()) * rObj1;
+	CVector2<float> vsObj1 = (this->velocity - vnObj1) + ((this->rotVelocity * rObj1.abs()) * (this->velocity - vnObj1).normalize());
+	CVector2<float> vsObj2 = (obj->velocity - vnObj2) + ((obj->rotVelocity * rObj2.abs()) * (obj->velocity - vnObj2).normalize());
+	CVector2<float> velDifObj1 = (vnObj1 + friction * vsObj1) - (vnObj2 + friction * vsObj2);
+	CVector2<float> posDifObj1 = this->position - obj->position;
+	double a = CVector2<float>::dot(velDifObj1, posDifObj1) / (posDifObj1.abs() * posDifObj1.abs());
+	a = a * ((2 * obj->mass) / (this->mass + obj->mass));
+	this->velocity = (vnObj1 + (2 - friction) * vsObj1) - (a * posDifObj1);
+	/*
+	float dRotVel = 0.5f * friction * (vsObj1 - vsObj2).abs() / rObj1.abs();
+	if ((vsObj1.normalize() - (vsObj1 - vsObj2).normalize()).abs() > 0.001f)
 	{
-		CVector2<float> Br = obj->position - contact;
-		CVector2<float> Ar = this->position - contact;
-		CVector2<float> Avn = CVector2<float>::dot(this->velocity, Br) / (Br.abs() * Br.abs()) * Br;
-		CVector2<float> Bvn = CVector2<float>::dot(obj->velocity, Ar) / (Ar.abs() * Ar.abs()) * Ar;
-		CVector2<float> Avs = this->velocity - Avn;
-		CVector2<float> Bvs = obj->velocity - Bvn;
-		CVector2<float> AvelDif = (Avn/* + Avs*/) - (Bvn/* + Bvs*/);
-		CVector2<float> AposDif = this->position - obj->position;
-		double a = CVector2<float>::dot(AvelDif, AposDif) / (AposDif.abs() * AposDif.abs());
-		a = a * ((2 * obj->mass) / (this->mass + obj->mass));
-		CVector2<float> temp = (Avn + (2 - (this->friction + obj->friction)) * 0.5 * Avs) - (a * AposDif);
-		this->velocity.x = temp.x;
-		this->velocity.y = temp.y;
-		this->rotVelocity = (this->friction + obj->friction) * 0.5 * Bvs.abs() / Ar.abs();
-
-		CVector2<float> BvelDif = (Bvn + Bvs) - (Avn + Avs);
-		CVector2<float> BposDif = obj->position - this->position;
-		a = CVector2<float>::dot(BvelDif, BposDif) / (BposDif.abs() * BposDif.abs());
-		a = a * ((2 * this->mass) / (obj->mass + this->mass));
-		temp = (Bvn + (2-(this->friction + obj->friction)) * 0.5 * Bvs) - (a * BposDif);
-		obj->velocity.x = temp.x;
-		obj->velocity.y = temp.y;
-		obj->rotVelocity = (this->friction + obj->friction) * 0.5 * Avs.abs() / Br.abs();
+		dRotVel = -dRotVel;
 	}
-	if (this->collider->type == CCollider::Type::POLY &&
-		obj->collider->type == CCollider::Type::POLY)
+	this->rotVelocity += dRotVel;
+	*/
+
+	CVector2<float> velDifObj2 = (vnObj2 + vsObj2) - (vnObj1 + vsObj1);
+	CVector2<float> posDifObj2 = obj->position - this->position;
+	a = CVector2<float>::dot(velDifObj2, posDifObj2) / (posDifObj2.abs() * posDifObj2.abs());
+	a = a * ((2 * this->mass) / (obj->mass + this->mass));
+	obj->velocity = (vnObj2 + (2 - friction) * vsObj2) - (a * posDifObj2);
+	/*
+	dRotVel = 0.5f * friction * (vsObj1 - vsObj2).abs() / rObj2.abs();
+	if ((vsObj2.normalize() - (vsObj2 - vsObj1).normalize()).abs() > 0.001f)
 	{
-		CVector2<float> velDif = this->velocity - obj->velocity;
-		CVector2<float> posDif = this->position - obj->position;
-		double a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
-		a = a * ((2 * obj->mass) / (this->mass + obj->mass));
-		CVector2<float> temp = this->velocity - (a * posDif);
-		this->velocity.x = temp.x;
-		this->velocity.y = temp.y;
-
-		velDif = obj->velocity - this->velocity;
-		posDif = obj->position - this->position;
-		a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
-		a = a * ((2 * this->mass) / (obj->mass + this->mass));
-		temp = obj->velocity - (a * posDif);
-		obj->velocity.x = temp.x;
-		obj->velocity.y = temp.y;
+		dRotVel = -dRotVel;
 	}
-	if (this->collider->type == CCollider::Type::ELLIPSE &&
-		obj->collider->type == CCollider::Type::POLY ||
-		this->collider->type == CCollider::Type::POLY &&
-		obj->collider->type == CCollider::Type::ELLIPSE)
-	{
-		CVector2<float> velDif = this->velocity - obj->velocity;
-		CVector2<float> posDif = this->position - obj->position;
-		double a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
-		a = a * ((2 * obj->mass) / (this->mass + obj->mass));
-		CVector2<float> temp = this->velocity - (a * posDif);
-		this->velocity.x = temp.x;
-		this->velocity.y = temp.y;
+	obj->rotVelocity += dRotVel;
+	*/
+	/* Basic elastic collision (old version)
+	CVector2<float> velDif = this->velocity - obj->velocity;
+	CVector2<float> posDif = this->position - obj->position;
+	double a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
+	a = a * ((2 * obj->mass) / (this->mass + obj->mass));
+	CVector2<float> temp = this->velocity - (a * posDif);
+	this->velocity.x = temp.x;
+	this->velocity.y = temp.y;
 
-		velDif = obj->velocity - this->velocity;
-		posDif = obj->position - this->position;
-		a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
-		a = a * ((2 * this->mass) / (obj->mass + this->mass));
-		temp = obj->velocity - (a * posDif);
-		obj->velocity.x = temp.x;
-		obj->velocity.y = temp.y;
-	}
+	velDif = obj->velocity - this->velocity;
+	posDif = obj->position - this->position;
+	a = CVector2<float>::dot(velDif, posDif) / (posDif.abs() * posDif.abs());
+	a = a * ((2 * this->mass) / (obj->mass + this->mass));
+	temp = obj->velocity - (a * posDif);
+	obj->velocity.x = temp.x;
+	obj->velocity.y = temp.y;
+	*/
 }

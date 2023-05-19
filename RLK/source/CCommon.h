@@ -13,7 +13,7 @@ public:
 	void rotate(float a);
 	double getAngle();
 	void setAngle(double a);
-	void normalize();
+	CVector2<T> normalize();
 	static CVector2<T> setVector(float d, double a);
 	static double dot(CVector2<T>& a, CVector2<T>& b);
 };
@@ -95,18 +95,28 @@ void CVector2<T>::setAngle(double a)
 	float d = abs();
 	x = static_cast<float>(d * cos(a - 1.57));
 	y = static_cast<float>(d * sin(a - 1.57));
+	return this;
 }
 
 template<typename T>
-void CVector2<T>::normalize()
+CVector2<T> CVector2<T>::normalize()
 {
-	double angle = getAngle();
-	x = 1;
-	setAngle(angle);
+	float d = abs();
+	if (d > 0)
+	{
+		x = x / d;
+		y = y / d;
+	}
+	else
+	{
+		x = 0;
+		y = 0;
+	}
+	return *this;
 }
 
 template<typename T>
-static CVector2<T> setVector(float d, double a)
+CVector2<T> setVector(float d, double a)
 {
 	CVector2<T> ret(d, 0);
 	ret.setAngle(a);

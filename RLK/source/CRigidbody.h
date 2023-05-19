@@ -15,6 +15,7 @@ public:
 	float spring;
 	float dumping;
 	bool collides;
+	bool dynamic;
 	bool gravity;
 	CCollider* collider;
 	// Public Methods
